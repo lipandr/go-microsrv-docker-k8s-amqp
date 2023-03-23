@@ -1,0 +1,1 @@
+# go-microsrv-docker-k8s-amqp

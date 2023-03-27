@@ -1,8 +1,11 @@
 #### joe made this: http://goel.io/joe
 
 #### Project files
-brokerApp
 frontApp
+brokerApp
+authApp
+/.idea
+/project/db-data
 
 #### macos ####
 *.DS_Store

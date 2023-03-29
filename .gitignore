@@ -4,6 +4,7 @@
 frontApp
 brokerApp
 authApp
+loggerServiceApp
 /.idea
 /project/db-data
 

@@ -49,7 +49,8 @@ func main() {
 		Models: data.New(client),
 	}
 	// starting the log service
-	go app.serve()
+	log.Printf("Starting the log service on port %s", webPort)
+	app.serve()
 }
 
 func (app *Config) serve() {
@@ -75,5 +76,6 @@ func connectToMongo() (*mongo.Client, error) {
 		log.Println("Error connecting:", err)
 		return nil, err
 	}
+	log.Println("Connected to MongoDB!")
 	return c, nil
 }

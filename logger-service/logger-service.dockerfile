@@ -4,5 +4,4 @@ RUN mkdir /app
 
 COPY loggerServiceApp /app
 
-CMD ["/app/loggerServiceApp"]
-
+CMD [ "/app/loggerServiceApp"]

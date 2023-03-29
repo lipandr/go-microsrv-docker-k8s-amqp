@@ -14,6 +14,8 @@ import (
 var client *mongo.Client
 
 func New(mongo *mongo.Client) Models {
+	client = mongo
+
 	return Models{
 		LogEntry: LogEntry{},
 	}
@@ -44,6 +46,7 @@ func (l *LogEntry) Insert(entry LogEntry) error {
 		log.Println("Error inserting into logs:", err)
 		return err
 	}
+
 	return nil
 }
 
@@ -69,12 +72,16 @@ func (l *LogEntry) All() ([]*LogEntry, error) {
 
 	for cursor.Next(ctx) {
 		var item LogEntry
-		if err := cursor.Decode(&item); err != nil {
-			log.Println("Error decoding log into slice:", err)
+
+		err := cursor.Decode(&item)
+		if err != nil {
+			log.Print("Error decoding log into slice:", err)
 			return nil, err
+		} else {
+			logs = append(logs, &item)
 		}
-		logs = append(logs, &item)
 	}
+
 	return logs, nil
 }
 
@@ -86,36 +93,16 @@ func (l *LogEntry) GetOne(id string) (*LogEntry, error) {
 
 	docID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		log.Println("Error parsing id:", err)
 		return nil, err
 	}
+
 	var entry LogEntry
-
-	if err = collection.FindOne(ctx, bson.M{"_id": docID}).Decode(&entry); err != nil {
-		log.Println("Error finding doc:", err)
+	err = collection.FindOne(ctx, bson.M{"_id": docID}).Decode(&entry)
+	if err != nil {
 		return nil, err
 	}
+
 	return &entry, nil
-}
-
-func (l *LogEntry) Update() (*mongo.UpdateResult, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-
-	collection := client.Database("logs").Collection("logs")
-	docID, err := primitive.ObjectIDFromHex(l.ID)
-	if err != nil {
-		log.Println("Error parsing id:", err)
-		return nil, err
-	}
-	filter := bson.M{"_id": docID}
-	update := bson.M{"$set": bson.M{"name": l.Name, "data": l.Data, "updated_at": time.Now()}}
-	result, err := collection.UpdateOne(ctx, filter, update)
-	if err != nil {
-		log.Println("Error updating doc:", err)
-		return nil, err
-	}
-	return result, nil
 }
 
 func (l *LogEntry) DropCollection() error {
@@ -125,8 +112,38 @@ func (l *LogEntry) DropCollection() error {
 	collection := client.Database("logs").Collection("logs")
 
 	if err := collection.Drop(ctx); err != nil {
-		log.Println("Error dropping collection:", err)
 		return err
 	}
+
 	return nil
+}
+
+func (l *LogEntry) Update() (*mongo.UpdateResult, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	collection := client.Database("logs").Collection("logs")
+
+	docID, err := primitive.ObjectIDFromHex(l.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := collection.UpdateOne(
+		ctx,
+		bson.M{"_id": docID},
+		bson.D{
+			{"$set", bson.D{
+				{"name", l.Name},
+				{"data", l.Data},
+				{"updated_at", time.Now()},
+			}},
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

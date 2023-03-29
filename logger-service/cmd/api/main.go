@@ -2,21 +2,29 @@ package main
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"log-service/data"
 )
 
 const (
-	//webPort  = "80"
+	webPort = "80"
 	//rpcPort  = "5001"
 	//gRpcPort = "50001"
 	mongoURL = "mongodb://mongo:27001"
 )
 
 var client *mongo.Client
+
+type Config struct {
+	Models data.Models
+}
 
 func main() {
 	// connect to mongo
@@ -36,6 +44,22 @@ func main() {
 			panic(err)
 		}
 	}()
+
+	app := Config{
+		Models: data.New(client),
+	}
+	// starting the log service
+	go app.serve()
+}
+
+func (app *Config) serve() {
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", webPort),
+		Handler: app.routes(),
+	}
+	if err := srv.ListenAndServe(); err != nil {
+		log.Panic(err)
+	}
 }
 
 func connectToMongo() (*mongo.Client, error) {

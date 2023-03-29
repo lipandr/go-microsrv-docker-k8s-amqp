@@ -2,17 +2,18 @@ package data
 
 import (
 	"context"
+	"log"
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
-	"time"
 )
 
 var client *mongo.Client
 
-func New(mongo mongo.Client) Models {
+func New(mongo *mongo.Client) Models {
 	return Models{
 		LogEntry: LogEntry{},
 	}

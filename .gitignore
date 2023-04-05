@@ -5,6 +5,8 @@ frontApp
 brokerApp
 authApp
 loggerServiceApp
+MailerApp
+
 /.idea
 /project/db-data
 
